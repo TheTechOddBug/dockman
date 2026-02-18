@@ -59,6 +59,35 @@ func (h *Handler) getHost(ctx context.Context) (string, *Service, error) {
 // 			Compose Actions 			  //
 ////////////////////////////////////////////
 
+func (h *Handler) ComposeFileStatus(ctx context.Context, c *connect.Request[v1.ComposeFileStatusRequest]) (*connect.Response[v1.ComposeFileStatusResponse], error) {
+	var results = make(map[string]*v1.Status, len(c.Msg.Files))
+
+	for _, file := range c.Msg.Files {
+		err := h.WithClient(ctx, func(dkSrv *Service) error {
+			stat, err := dkSrv.Compose.Status(ctx, file)
+			if err != nil {
+				return err
+			}
+
+			results[file] = &v1.Status{
+				ServicesUp:        int32(stat.UpCount),
+				ServicesDown:      int32(stat.DownCount),
+				ServicesHealthy:   int32(stat.HealthyCount),
+				ServicesUnHealthy: int32(stat.UnhealthyCount),
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Warn().Str("file", file).Err(err).Msg("Failed to get compose status")
+		}
+	}
+
+	return connect.NewResponse(&v1.ComposeFileStatusResponse{
+		Status: results,
+	}), nil
+}
+
 func (h *Handler) ComposeUp(ctx context.Context, req *connect.Request[v1.ComposeFile], responseStream *connect.ServerStream[v1.LogsMessage]) error {
 	return h.WithClientAndStream(ctx, responseStream, func(dkSrv *Service, writer io.Writer) error {
 		return dkSrv.Compose.Up(

@@ -8,7 +8,7 @@ import {
     ListItemIcon,
     ListItemText,
     Menu,
-    MenuItem
+    MenuItem, Tooltip
 } from "@mui/material";
 import {useLocation} from 'react-router-dom'
 import React, {type MouseEvent, useEffect, useState} from 'react'
@@ -20,13 +20,16 @@ import {amber} from "@mui/material/colors";
 import type {FsEntry} from "../../../gen/files/v1/files_pb.ts";
 import {getDir, getEntryDisplayName, useFiles} from "../../../context/file-context.tsx";
 
-import {useEditorUrl} from "../../../lib/editor.ts";
+import {isComposeFile, useEditorUrl} from "../../../lib/editor.ts";
 import {useSnackbar} from "../../../hooks/snackbar.ts";
 import {useFileCreate} from "../dialogs/file-create.tsx";
 import {useFileDelete} from "../dialogs/file-delete.tsx";
 import {useFileRename} from "../dialogs/file-rename.tsx";
 import {useAliasStore, useHostStore, useOpenFiles} from "../state/files.ts";
 import {useConfig} from "../../../hooks/config.ts";
+import {useComposeFileState} from "../state/status.ts";
+import {getContextKey} from "../../../context/tab-context.tsx";
+import type {Status} from "../../../gen/docker/v1/docker_pb.ts";
 
 export const useFileDnD = (entry: FsEntry) => {
     const [isDragOver, setIsDragOver] = useState(false);
@@ -133,11 +136,19 @@ const FolderItemDisplay = ({entry, depthIndex}: {
     // Highlight if we are currently editing the compose file this folder points to
     const isSelected = useIsSelected(composeFilePath);
 
+    const closeComposeStatus = useComposeFileState(state => state.delete)
+
     const handleToggle = (_e: React.MouseEvent) => {
         // If it's a link, we want the navigation to happen,
         // but we ALSO want to toggle the folder visibility.
         toggle(entry.filename);
     }
+
+    useEffect(() => {
+        if (!folderOpen && !isComposeFolder) {
+            closeComposeStatus(entry.filename)
+        }
+    }, [folderOpen]);
 
     const [isFetchingMore, setIsFetchingMore] = useState(false)
 
@@ -157,6 +168,16 @@ const FolderItemDisplay = ({entry, depthIndex}: {
     const {contextMenu, closeCtxMenu, contextActions, handleContextMenu} = useFileMenuCtx(entry)
 
     const displayName = getEntryDisplayName(name);
+
+    const trackComposeStatus = useComposeFileState(state => state.trackComposeStatus)
+
+    const fileStatus = useComposeFileState(state => state.openFiles[getContextKey()]?.[entry.isComposeFolder])
+    const stackStatusColor = getStatusTheme(fileStatus);
+    useEffect(() => {
+        if (isComposeFolder) {
+            trackComposeStatus(entry.isComposeFolder);
+        }
+    }, [isComposeFolder, entry.isComposeFolder]);
 
     return (
         <>
@@ -204,6 +225,23 @@ const FolderItemDisplay = ({entry, depthIndex}: {
                         }
                     }}
                 />
+
+                {(fileStatus) &&
+                    <Tooltip
+                        title={`${fileStatus.servicesUp} Up, ${fileStatus.servicesDown} Down, ${fileStatus.servicesHealthy} Healthy`}
+                        arrow placement="right">
+                        <Box
+                            sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: stackStatusColor.color,
+                                boxShadow: `0 0 0 2px ${stackStatusColor.color}22`, // Subtle glow
+                                ml: 1
+                            }}
+                        />
+                    </Tooltip>
+                }
 
                 <IconButton
                     size="small"
@@ -266,6 +304,15 @@ const FileItemDisplay = ({entry}: { entry: FsEntry }) => {
     const editorUrl = useEditorUrl()
     const filePath = editorUrl(filename)
 
+    const trackComposeStatus = useComposeFileState(state => state.trackComposeStatus)
+    const fileStatus = useComposeFileState(state => state.openFiles[getContextKey()]?.[filename])
+    const stackStatusColor = getStatusTheme(fileStatus);
+    useEffect(() => {
+        if (isComposeFile(filename)) {
+            trackComposeStatus(filename);
+        }
+    }, [filename]);
+
     const isSelected = useIsSelected(filePath);
     const displayName = getEntryDisplayName(filename);
 
@@ -295,6 +342,22 @@ const FileItemDisplay = ({entry}: { entry: FsEntry }) => {
                         primary: {sx: {fontSize: '0.85rem'}}
                     }}
                 />
+                {(fileStatus) &&
+                    <Tooltip
+                        title={`${fileStatus.servicesUp} Up, ${fileStatus.servicesDown} Down, ${fileStatus.servicesHealthy} Healthy`}
+                        arrow placement="right">
+                        <Box
+                            sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: stackStatusColor.color,
+                                boxShadow: `0 0 0 2px ${stackStatusColor.color}22`, // Subtle glow
+                                ml: 1
+                            }}
+                        />
+                    </Tooltip>
+                }
             </ListItemButton>
             <Menu
                 open={contextMenu !== null}
@@ -405,16 +468,15 @@ const useFileMenuCtx = (entry: FsEntry) => {
     return {closeCtxMenu, contextActions, contextMenu, handleContextMenu}
 }
 
-// const useRename = (filename: string) => {
-//     const [isEditing, setIsEditing] = useState(false);
-//     const [editedName, setEditedName] = useState(filename);
-//     const [isHovered, setIsHovered] = useState(false);
-//     const inputRef = useRef<HTMLInputElement>(null);
-//
-//     return {
-//         isEditing, setIsEditing,
-//         editedName, setEditedName,
-//         isHovered, setIsHovered,
-//         inputRef,
-//     }
-// }
+const getStatusTheme = (status: Status | undefined) => {
+    if (!status) {
+        return {color: 'text.disabled', label: 'No Services'};
+    }
+
+    if (status.servicesUnHealthy > 0) return {color: 'error.main', label: 'Unhealthy'};
+    if (status.servicesDown > 0 && status.servicesUp > 0) return {color: 'warning.main', label: 'Partially Up'};
+    if (status.servicesDown > 0 && status.servicesUp === 0) return {color: 'error.light', label: 'Down'};
+    if (status.servicesHealthy > 0) return {color: 'success.main', label: 'Healthy'};
+    if (status.servicesUp > 0) return {color: 'success.light', label: 'Running'};
+    return {color: 'text.disabled', label: 'No Services'};
+};

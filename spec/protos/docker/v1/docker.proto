@@ -375,6 +375,7 @@ message ContainerList {
   string imageID = 2;
   string imageName = 3;
   string state = 4;
+  string health = 13;
   string name = 5;
   string created = 6;
   repeated Port ports = 7;

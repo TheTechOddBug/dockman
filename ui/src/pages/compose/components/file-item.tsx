@@ -172,7 +172,6 @@ const FolderItemDisplay = ({entry, depthIndex}: {
     const trackComposeStatus = useComposeFileState(state => state.trackComposeStatus)
 
     const fileStatus = useComposeFileState(state => state.openFiles[getContextKey()]?.[entry.isComposeFolder])
-    const stackStatusColor = getStatusTheme(fileStatus);
     useEffect(() => {
         if (isComposeFolder) {
             trackComposeStatus(entry.isComposeFolder);
@@ -226,22 +225,7 @@ const FolderItemDisplay = ({entry, depthIndex}: {
                     }}
                 />
 
-                {(fileStatus) &&
-                    <Tooltip
-                        title={`${fileStatus.servicesUp} Up, ${fileStatus.servicesDown} Down, ${fileStatus.servicesHealthy} Healthy`}
-                        arrow placement="right">
-                        <Box
-                            sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                bgcolor: stackStatusColor.color,
-                                boxShadow: `0 0 0 2px ${stackStatusColor.color}22`, // Subtle glow
-                                ml: 1
-                            }}
-                        />
-                    </Tooltip>
-                }
+                <StatusIndicator fileStatus={fileStatus}/>
 
                 <IconButton
                     size="small"
@@ -306,7 +290,6 @@ const FileItemDisplay = ({entry}: { entry: FsEntry }) => {
 
     const trackComposeStatus = useComposeFileState(state => state.trackComposeStatus)
     const fileStatus = useComposeFileState(state => state.openFiles[getContextKey()]?.[filename])
-    const stackStatusColor = getStatusTheme(fileStatus);
     useEffect(() => {
         if (isComposeFile(filename)) {
             trackComposeStatus(filename);
@@ -342,22 +325,8 @@ const FileItemDisplay = ({entry}: { entry: FsEntry }) => {
                         primary: {sx: {fontSize: '0.85rem'}}
                     }}
                 />
-                {(fileStatus) &&
-                    <Tooltip
-                        title={`${fileStatus.servicesUp} Up, ${fileStatus.servicesDown} Down, ${fileStatus.servicesHealthy} Healthy`}
-                        arrow placement="right">
-                        <Box
-                            sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                bgcolor: stackStatusColor.color,
-                                boxShadow: `0 0 0 2px ${stackStatusColor.color}22`, // Subtle glow
-                                ml: 1
-                            }}
-                        />
-                    </Tooltip>
-                }
+
+                <StatusIndicator fileStatus={fileStatus}/>
             </ListItemButton>
             <Menu
                 open={contextMenu !== null}
@@ -468,9 +437,33 @@ const useFileMenuCtx = (entry: FsEntry) => {
     return {closeCtxMenu, contextActions, contextMenu, handleContextMenu}
 }
 
+const StatusIndicator = ({fileStatus}: { fileStatus: Status }) => {
+    const stackStatus = getStatusTheme(fileStatus);
+
+    return ((fileStatus) &&
+        <Tooltip
+            title={`${fileStatus.servicesUp} Up, ${fileStatus.servicesDown} Down, ${fileStatus.servicesHealthy} Healthy`}
+            arrow placement="right">
+            <Box
+                sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: stackStatus.label ? stackStatus.color : 'transparent',
+                    border: stackStatus.label ? 'none' : `2px solid ${stackStatus.color}`,
+                    boxShadow: `0 0 0 2px ${stackStatus.color}22`,
+                    ml: 1
+                }}
+            />
+        </Tooltip>
+    )
+};
+
+export default StatusIndicator;
+
 const getStatusTheme = (status: Status | undefined) => {
     if (!status) {
-        return {color: 'text.disabled', label: 'No Services'};
+        return {color: 'text.disabled', label: ''};
     }
 
     if (status.servicesUnHealthy > 0) return {color: 'error.main', label: 'Unhealthy'};
@@ -478,5 +471,5 @@ const getStatusTheme = (status: Status | undefined) => {
     if (status.servicesDown > 0 && status.servicesUp === 0) return {color: 'error.light', label: 'Down'};
     if (status.servicesHealthy > 0) return {color: 'success.main', label: 'Healthy'};
     if (status.servicesUp > 0) return {color: 'success.light', label: 'Running'};
-    return {color: 'text.disabled', label: 'No Services'};
+    return {color: 'text.disabled', label: ''};
 };

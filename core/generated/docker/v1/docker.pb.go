@@ -3063,6 +3063,7 @@ type ContainerList struct {
 	ImageID   string                 `protobuf:"bytes,2,opt,name=imageID,proto3" json:"imageID,omitempty"`
 	ImageName string                 `protobuf:"bytes,3,opt,name=imageName,proto3" json:"imageName,omitempty"`
 	State     string                 `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	Health    string                 `protobuf:"bytes,13,opt,name=health,proto3" json:"health,omitempty"`
 	Name      string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
 	Created   string                 `protobuf:"bytes,6,opt,name=created,proto3" json:"created,omitempty"`
 	Ports     []*Port                `protobuf:"bytes,7,rep,name=ports,proto3" json:"ports,omitempty"`
@@ -3130,6 +3131,13 @@ func (x *ContainerList) GetImageName() string {
 func (x *ContainerList) GetState() string {
 	if x != nil {
 		return x.State
+	}
+	return ""
+}
+
+func (x *ContainerList) GetHealth() string {
+	if x != nil {
+		return x.Health
 	}
 	return ""
 }
@@ -3742,12 +3750,13 @@ const file_docker_v1_docker_proto_rawDesc = "" +
 	"\x04list\x18\x02 \x03(\v2\x18.docker.v1.ContainerListR\x04list\x1a>\n" +
 	"\x10StatusCountEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\xec\x02\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\x84\x03\n" +
 	"\rContainerList\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aimageID\x18\x02 \x01(\tR\aimageID\x12\x1c\n" +
 	"\timageName\x18\x03 \x01(\tR\timageName\x12\x14\n" +
-	"\x05state\x18\x04 \x01(\tR\x05state\x12\x12\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\x12\x16\n" +
+	"\x06health\x18\r \x01(\tR\x06health\x12\x12\n" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x18\n" +
 	"\acreated\x18\x06 \x01(\tR\acreated\x12%\n" +
 	"\x05ports\x18\a \x03(\v2\x0f.docker.v1.PortR\x05ports\x12 \n" +

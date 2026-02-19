@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import {Box, CircularProgress, Divider, IconButton, List, Toolbar, Tooltip, Typography} from '@mui/material'
 import {Add as AddIcon, Cached, Search as SearchIcon} from '@mui/icons-material'
 import {ShortcutFormatter} from "./shortcut-formatter.tsx"
@@ -177,22 +177,28 @@ const FileListInner = () => {
     const setStatus = useComposeFileState(state => state.setStatus)
     const dockerSrv = useHostClient(DockerService)
 
-    useEffect(() => {
-        const interval = setInterval(async () => {
-            const keys = Object.keys(openFiles[`${host}/${alias}`])
 
-            const {val} = await callRPC(() => dockerSrv.composeFileStatus({
-                files: keys
-            }))
+    const openFilesRef = useRef(openFiles)
+    useEffect(() => {
+        openFilesRef.current = openFiles
+    }, [openFiles])
+
+    useEffect(() => {
+        const refresh = async () => {
+            const currentElement = openFilesRef.current[`${host}/${alias}`];
+            if (!currentElement) return;
+
+            const keys = Object.keys(currentElement)
+            const {val} = await callRPC(() => dockerSrv.composeFileStatus({ files: keys }))
             if (val) {
                 setStatus(val.status)
             }
+        }
 
-            console.log(`Open Compose Files ${keys}`);
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [openFiles])
+        refresh().then()
+        const interval = setInterval(refresh, 3000)
+        return () => clearInterval(interval)
+    }, [])
 
 
     return (

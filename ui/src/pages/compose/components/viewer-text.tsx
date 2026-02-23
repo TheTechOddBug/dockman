@@ -12,7 +12,7 @@ import CenteredMessage from "../../../components/centered-message.tsx";
 import {ErrorOutline} from "@mui/icons-material";
 import {useOpenFiles} from "../state/files.ts";
 import {FileService} from "../../../gen/files/v1/files_pb.ts";
-import {indicatorMap, useSaveStatus} from "../hooks/status-hook.tsx";
+import {indicatorMap, type SaveState} from "../hooks/status-hook.tsx";
 
 export enum TabType {
     // noinspection JSUnusedGlobalSymbols
@@ -108,7 +108,8 @@ function ViewerTextEditor() {
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [filename, navigate]);
 
-    const {status, handleContentChange} = useSaveStatus(500, filename);
+    const [saveStatus, setSaveStatus] = useState<SaveState>('idle')
+
 
     const tabsList: TabDetails[] = useMemo(() => {
         if (!filename) return [];
@@ -119,7 +120,7 @@ function ViewerTextEditor() {
             label: 'Editor',
             component: <TabEditor
                 selectedPage={filename}
-                handleContentChange={handleContentChange}
+                setFileSaveStatus={setSaveStatus}
             />,
             shortcut: <ShortcutFormatter title={"Editor"} keyCombo={["ALT", "Z"]}/>,
         })
@@ -194,7 +195,7 @@ function ViewerTextEditor() {
                         indicator: {
                             sx: {
                                 transition: '0.09s',
-                                backgroundColor: indicatorMap[status].color,
+                                backgroundColor: indicatorMap[saveStatus].color,
                             }
                         }
                     }}
@@ -204,15 +205,15 @@ function ViewerTextEditor() {
                             <Tab
                                 value={key}
                                 sx={{
-                                    color: (key === 0) ? indicatorMap[status].color : "text.secondary",
+                                    color: (key === 0) ? indicatorMap[saveStatus].color : "text.secondary",
                                     minHeight: '48px'
                                 }}
                                 label={
                                     key === 0 ? (
                                         <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                            {status === 'idle' ?
+                                            {saveStatus === 'idle' ?
                                                 <span>{details.label}</span> :
-                                                indicatorMap[status]?.component
+                                                indicatorMap[saveStatus]?.component
                                             }
                                         </Box>
                                     ) : details.label

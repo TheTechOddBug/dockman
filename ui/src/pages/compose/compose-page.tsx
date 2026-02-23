@@ -112,7 +112,7 @@ export const ComposePageInner = () => {
         clearTabs()
     }, [clearTabs, host]);
 
-    console.log("compose nav to ", filename)
+    // console.log("compose nav to ", filename)
 
     return (
         <Box sx={{

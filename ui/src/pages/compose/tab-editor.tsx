@@ -108,7 +108,6 @@ function TabEditor({selectedPage, setFileSaveStatus}: EditorProps) {
         return baseActions;
     }, [selectedPage, errors]);
 
-
     return (
         <Box sx={{
             p: 0.7,

@@ -108,3 +108,14 @@ export const useOpenFiles = create<OpenFilesState>()(
         },
     }))
 );
+
+
+export const useLastOpened = create<{
+    lastEditorUrl: string;
+    setUrl: (url: string) => void;
+}>()((set) => ({
+    lastEditorUrl: "",
+    setUrl: (url: string) => {
+        set({lastEditorUrl: url});
+    }
+}))

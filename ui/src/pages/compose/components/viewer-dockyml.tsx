@@ -1,6 +1,4 @@
-import {useFileComponents} from "../state/terminal.tsx";
-import {callRPC, useHostClient} from "../../../lib/api.ts";
-import {DockyamlService} from "../../../gen/dockyaml/v1/dockyaml_pb.ts";
+import {callRPC, useHostClient} from "../../../lib/api.ts";import {DockyamlService} from "../../../gen/dockyaml/v1/dockyaml_pb.ts";
 import {Box, Button, capitalize, Tooltip, Typography} from '@mui/material';
 import {indicatorMap, type SaveState} from "../hooks/status-hook.tsx";
 import {useConfig} from "../../../hooks/config.ts";
@@ -29,19 +27,18 @@ function arrayBufferLikeToString(bufferLike?: ArrayBufferLike): string {
     return decoder.decode(uint8Array);
 }
 
-function DockyamlViewer() {
+function DockyamlViewer({filename}: { filename: string }) {
     const dockYamlClient = useHostClient(DockyamlService);
-    const {filename} = useFileComponents();
 
     const {fetchDockmanYaml} = useConfig()
 
     const [saveStatus, setSaveStatus] = useState<SaveState>('idle')
 
     const refreshFile = async () => {
-        await getFile("")
+        await getFile()
     }
 
-    const getFile = async (_filename: string): Promise<{ contents: string; err: string }> => {
+    const getFile = async (): Promise<{ contents: string; err: string }> => {
         console.log("Testing ")
 
         const {val, err} = await callRPC(() => dockYamlClient.get({}))
@@ -51,7 +48,7 @@ function DockyamlViewer() {
         }
     };
 
-    const saveFile = async (_filename: string, newContent: string): Promise<string> => {
+    const saveFile = async (_: string, newContent: string): Promise<string> => {
         const {err} = await callRPC(() =>
             dockYamlClient.save({contents: stringToArrayBuffer(newContent)})
         );

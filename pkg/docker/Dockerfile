@@ -14,9 +14,6 @@ FROM golang:1.26-alpine AS back
 
 WORKDIR /build
 
-# for sqlite
-ENV CGO_ENABLED=1
-
 RUN apk update && apk add --no-cache gcc musl-dev git curl
 
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
@@ -39,7 +36,7 @@ WORKDIR /download
 
 RUN apk --no-cache add curl ca-certificates
 
-ARG COMPOSE_VERSION=v5.0.1
+ARG COMPOSE_VERSION=v5.1.0
 
 # $(uname -m) to automatically detect x86_64 or aarch64 (ARM)
 RUN curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-$(uname -m)"  \

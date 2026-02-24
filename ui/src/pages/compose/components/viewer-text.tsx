@@ -39,15 +39,13 @@ interface ActionButtons {
     onClick: () => void;
 }
 
-function ViewerTextEditor() {
-    const {filename: fn} = useFileComponents()
-    const filename = fn!
-
+function ViewerTextEditor({filename, track}: { filename: string, track: number }) {
     const fileService = useHostClient(FileService);
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const selectedTab = parseTabType(searchParams.get('tab'))
+    const tabKey = track === 0 ? 'tab' : 'splitTab';
+    const selectedTab = parseTabType(searchParams.get(tabKey))
 
     const [isLoading, setIsLoading] = useState(true);
     const [fileError, setFileError] = useState("");
@@ -77,7 +75,7 @@ function ViewerTextEditor() {
     const editorUrl = useEditorUrl()
 
     const changeTab = (tabId: string) => {
-        const url = editorUrl(filename, parseInt(tabId))
+        const url = editorUrl(filename, parseInt(tabId), track)
         navigate(url);
     };
 

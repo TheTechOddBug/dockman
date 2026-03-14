@@ -254,7 +254,11 @@ const SidebarContent = (
             )}
 
             {/* Content */}
-            <Box sx={{p: activeAction ? 2 : 0, width: '100%', overflow: 'hidden'}}>
+            <Box sx={{
+                p: activeAction ? 2 : 0,
+                width: '100%',
+                overflow: 'hidden',
+            }}>
                 {(activeAction) && actions[activeAction].element}
             </Box>
         </Box>

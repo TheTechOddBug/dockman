@@ -136,7 +136,7 @@ export const ComposePageInner = () => {
         return () => observer.disconnect();
     }, []);
 
-    const {panelRef, panelSize, handleMouseDown, cursor, sizeProperty} =
+    const {panelRef, panelSize, handleMouseDown, cursor} =
         useResizeBar('right',
             800,
             150,
@@ -171,8 +171,9 @@ export const ComposePageInner = () => {
                     <Box
                         ref={panelRef}
                         sx={{
-                            [sizeProperty]: needSplit ? panelSize : '100%',
-                            flexShrink: 0,
+                            flexGrow: needSplit ? 0 : 1,
+                            width: needSplit ? panelSize : 'auto',
+                            flexShrink: needSplit ? 0 : 1,
                             display: 'flex',
                             flexDirection: 'column',
                             overflow: 'hidden'
@@ -185,7 +186,10 @@ export const ComposePageInner = () => {
                             display: 'flex',
                             flexDirection: 'column'
                         }}>
-                            {!filename ? <CoreComposeEmpty/> : <CoreCompose filename={filename} track={0}/>}
+                            {!filename ?
+                                <CoreComposeEmpty/> :
+                                <CoreCompose filename={filename} track={0}/>
+                            }
                         </Box>
                     </Box>
 
@@ -220,8 +224,10 @@ export const ComposePageInner = () => {
                                     display: 'flex',
                                     flexDirection: 'column'
                                 }}>
-                                    {!splitFilename ? <CoreComposeEmpty/> :
-                                        <CoreCompose filename={splitFilename} track={1}/>}
+                                    {!splitFilename ?
+                                        <CoreComposeEmpty/> :
+                                        <CoreCompose filename={splitFilename} track={1}/>
+                                    }
                                 </Box>
                             </Box>
                         </>

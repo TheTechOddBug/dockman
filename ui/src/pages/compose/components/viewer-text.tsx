@@ -189,6 +189,8 @@ function ViewerTextEditor({filename, track}: { filename: string, track: number }
                     value={currentTab}
                     onChange={(_event, value) => changeTab(value)}
                     sx={{minHeight: '48px'}}
+                    variant="scrollable"
+                    scrollButtons="auto"
                     slotProps={{
                         indicator: {
                             sx: {

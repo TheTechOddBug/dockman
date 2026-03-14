@@ -4,9 +4,7 @@
 /**/.dockman.yaml
 compose/*
 /**/test-compose
-/dock/
-dock/*
-/backend/**/*compose.yml
+
 install/stacks/
 /config/
 /install/config/

@@ -137,7 +137,6 @@ function ViewerTextEditor({filename, track}: { filename: string, track: number }
         }
 
         return map;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filename]);
 
     const buttonList: ActionButtons[] = useMemo(() => {
@@ -176,7 +175,7 @@ function ViewerTextEditor({filename, track}: { filename: string, track: number }
         );
     }
 
-    const activePanel = tabsList[currentTab].component;
+    const activePanel = (tabsList[currentTab] ?? tabsList[0]).component;
     return (
         <>
             <Box sx={{
